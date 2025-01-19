@@ -1,9 +1,16 @@
+try:
+    from config_local import EXCHANGE_CONFIG  # Try to import local config first
+except ImportError:
+    from config import EXCHANGE_CONFIG  # Fall back to template config
+
 from gate_api import ApiClient, SpotApi, Configuration
 from gate_api.exceptions import GateApiException
-from config import EXCHANGE_CONFIG
 
 class ExchangeClient:
     def __init__(self):
+        if not EXCHANGE_CONFIG['api_key'] or not EXCHANGE_CONFIG['api_secret']:
+            raise ValueError("API credentials not configured. Please set them in config_local.py")
+        
         # Create authentication configuration
         config = Configuration(
             key=EXCHANGE_CONFIG['api_key'],
