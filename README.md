@@ -1,15 +1,17 @@
 # OneMillion Trading Bot
 
-An automated cryptocurrency trading system focusing on BTC/USDT trading pair using Gate.io API.
+An automated cryptocurrency trading system focusing on BTC-PERPETUAL futures trading using Deribit's WebSocket API.
 
 ## Features
 
 - 🤖 Automated trading strategies
-- 📊 Real-time market data analysis
+- 📊 Real-time market data via WebSocket
 - ⚡ Async operations for better performance
 - 🛡️ Built-in risk management
 - 📈 Technical analysis indicators
 - 🔔 Real-time monitoring and alerts
+- 💼 Perpetual futures trading
+- 🔄 WebSocket-based real-time updates
 
 ## Project Structure
 
@@ -29,7 +31,7 @@ oneMillion/
 ### Prerequisites
 
 - Python 3.8+
-- Gate.io API account
+- Deribit WebSocket API account
 
 ### Installation
 
@@ -55,7 +57,7 @@ pip install -e .
 
 4. Configure API credentials
 - Copy `src/config.py` to `src/config_local.py`
-- Add your Gate.io API credentials to `config_local.py`
+- Add your Deribit WebSocket API credentials to `config_local.py`
 
 ## Development
 

@@ -2,38 +2,48 @@
 
 ## Project Phases
 
-### Phase 1: Infrastructure Setup ⏳ (In Progress)
+### Phase 1: Infrastructure Setup ✅ (Completed)
 #### Completed ✅
 - Basic project structure
 - Git repository initialization
 - Secure configuration handling
-- Gate.io API client base setup
+- Deribit API WebSocket client setup
+- Core API functionality:
+  - Authentication
+  - Market data retrieval
+  - Account balance checking
+  - Order book data
+  - Position information
 
 #### In Progress 🚧
 - Core components structure:
-  - Exchange interface
   - Risk management system
   - Base strategy framework
   - Monitoring system
+  - Position management
+  - Order execution
 
 #### Todo 📋
 - Data pipeline implementation
-- Logging system
+- Logging system enhancement
 - Error handling framework
-- Testing infrastructure
+- Testing infrastructure expansion
 
-### Phase 2: Core Trading Components 📝 (Planned)
+### Phase 2: Core Trading Components 🚧 (In Progress)
 #### Exchange Integration
+- [x] WebSocket connection setup
+- [x] Authentication system
+- [x] Market data streaming
+- [x] Order book handling
 - [ ] Order placement and management
 - [ ] Position tracking
 - [ ] Balance management
-- [ ] Real-time market data streaming
-- [ ] Order book handling
 
 #### Risk Management
 - [ ] Position sizing algorithms
 - [ ] Stop-loss implementation
 - [ ] Take-profit management
+- [ ] Leverage management
 - [ ] Exposure limits
 - [ ] Drawdown protection
 
@@ -52,7 +62,9 @@
 - [ ] Performance metrics calculation
 
 ### Phase 4: Testing Framework 🧪 (Planned)
-- [ ] Unit tests setup
+- [x] Basic API connectivity tests
+- [x] Authentication tests
+- [ ] Unit tests expansion
 - [ ] Integration tests
 - [ ] Backtesting system
 - [ ] Performance benchmarking
@@ -75,14 +87,16 @@
 ## Technical Debt
 - Need to implement comprehensive error handling
 - Add detailed logging system
-- Improve configuration management
+- Improve WebSocket connection management
+- Add reconnection logic for WebSocket
+- Implement token refresh mechanism
 - Add API rate limiting protection
 - Implement database for data storage
 
 ## Notes
-- Using Gate.io API for trading
-- Focusing on BTC/USDT pair initially
-- Implementing async operations for better performance
+- Using Deribit API for trading
+- Focusing on BTC-PERPETUAL initially
+- Implementing async operations with WebSocket
 - Following professional trading system architecture
 
 📁 File Organization:
