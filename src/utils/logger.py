@@ -12,22 +12,17 @@ Example:
 import logging
 from typing import Optional
 
-def get_logger(name: str, level: Optional[int] = None) -> logging.Logger:
+def get_logger(name: Optional[str] = None) -> logging.Logger:
     """
-    Get a logger instance with consistent formatting.
+    Get a configured logger instance.
     
     Args:
-        name: Name of the logger, typically __name__
-        level: Optional logging level, defaults to INFO
+        name: Optional name for the logger
         
     Returns:
         Configured logger instance
-        
-    Example:
-        logger = get_logger(__name__)
-        logger.info("Processing trade")
     """
-    logger = logging.getLogger(name)
+    logger = logging.getLogger(name or __name__)
     
     if not logger.handlers:
         handler = logging.StreamHandler()
@@ -36,6 +31,6 @@ def get_logger(name: str, level: Optional[int] = None) -> logging.Logger:
         )
         handler.setFormatter(formatter)
         logger.addHandler(handler)
+        logger.setLevel(logging.INFO)
     
-    logger.setLevel(level or logging.INFO)
     return logger 

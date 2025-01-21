@@ -1,20 +1,28 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
-name = "onemillion"
+name = "oneMillion"
 version = "0.1.0"
-description = "Automated cryptocurrency trading system focusing on BTC/USDT trading pair"
 authors = [
-    {name = "OneMillion Trading Bot Team"}
+  { name="snowpeakliu", email="snowpeakliu@gmail.com" },
 ]
-dependencies = [
-    "gate-api>=4.0.0",
-    "pandas>=1.5.0",
-    "numpy>=1.21.0",
-    "python-dotenv>=0.19.0",
-    "aiohttp>=3.8.0",
-]
-requires-python = ">=3.8"
+description = "Cryptocurrency trading bot"
 readme = "README.md"
-license = {file = "LICENSE"}
+requires-python = ">=3.8"
+dependencies = [
+    "websockets",
+    "requests",
+    "pytest",
+    "pytest-asyncio"
+]
+
+[tool.pytest.ini_options]
+pythonpath = [
+  "src"
+]
+asyncio_mode = "auto"
 
 [project.optional-dependencies]
 test = [
@@ -22,15 +30,6 @@ test = [
     "pytest-asyncio>=0.18.0",
     "pytest-cov>=3.0.0",
 ]
-
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
-[tool.pytest.ini_options]
-asyncio_mode = "auto"
-testpaths = ["tests"]
-python_files = ["test_*.py"]
 
 [tool.black]
 line-length = 88
