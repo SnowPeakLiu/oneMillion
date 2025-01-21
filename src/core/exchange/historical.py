@@ -1,72 +1,74 @@
 """
-Historical data operations for Gate.io exchange.
+Historical data client for Deribit exchange.
 
 Handles retrieval of historical market data like candlesticks.
 """
 
-from typing import Dict, List, Optional
-from gate_api.exceptions import GateApiException
+from typing import List, Dict, Any
+from datetime import datetime, timedelta
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
 
 class HistoricalDataClient:
     """
-    Handles historical data operations for Gate.io exchange.
+    Client for accessing historical market data from Deribit.
     
-    Args:
-        spot_api: Gate.io spot API instance
-        trading_pair: Trading pair to use
-        
-    Example:
-        client = HistoricalDataClient(spot_api, "BTC_USDT")
-        candles = await client.get_historical_data('1h', 24)
+    Provides methods for retrieving historical candlestick data
+    through WebSocket API.
     """
     
-    def __init__(self, spot_api, trading_pair: str):
-        self.spot_api = spot_api
-        self.trading_pair = trading_pair
-        self.interval_map = {
-            '1m': '60',
-            '5m': '300',
-            '15m': '900',
-            '30m': '1800',
-            '1h': '3600',
-            '4h': '14400',
-            '1d': '86400'
-        }
+    VALID_INTERVALS = {
+        '1m': 1,
+        '3m': 3,
+        '5m': 5,
+        '15m': 15,
+        '30m': 30,
+        '1h': 60,
+        '2h': 120,
+        '4h': 240,
+        '6h': 360,
+        '12h': 720,
+        '1d': 1440
+    }
+    
+    def __init__(self, exchange_client):
+        """Initialize historical data client"""
+        self.exchange = exchange_client
+        self.instrument_name = exchange_client.instrument_name
         
-    async def get_historical_data(
-        self,
-        interval: str = '1h',
-        limit: int = 100
-    ) -> Optional[List[Dict]]:
+    async def get_historical_data(self, interval: str = '1h', start_time: int = None, end_time: int = None) -> List[Dict[str, Any]]:
         """
         Get historical candlestick data.
         
         Args:
-            interval: Time interval (1m, 5m, 15m, 30m, 1h, 4h, 1d)
-            limit: Number of candles to retrieve
+            interval: Time interval (e.g. '1h', '1d')
+            start_time: Start timestamp in milliseconds
+            end_time: End timestamp in milliseconds
             
         Returns:
-            List of candlestick data or None if error occurs
+            List of candlestick data
         """
+        if interval not in self.VALID_INTERVALS:
+            raise ValueError(f"Invalid interval. Must be one of {list(self.VALID_INTERVALS.keys())}")
+            
         try:
-            candlesticks = self.spot_api.list_candlesticks(
-                currency_pair=self.trading_pair,
-                interval=self.interval_map.get(interval, '3600'),
-                limit=limit
+            # If no time range specified, get last 24 hours
+            if not start_time:
+                end_time = int(datetime.now().timestamp() * 1000)
+                start_time = end_time - (24 * 60 * 60 * 1000)  # 24 hours
+                
+            result = await self.exchange.request(
+                'public/get_tradingview_chart_data',
+                {
+                    'instrument_name': self.instrument_name,
+                    'start_timestamp': start_time,
+                    'end_timestamp': end_time,
+                    'resolution': str(self.VALID_INTERVALS[interval])
+                }
             )
             
-            return [{
-                'timestamp': candle[0],
-                'volume': float(candle[1]),
-                'close': float(candle[2]),
-                'high': float(candle[3]),
-                'low': float(candle[4]),
-                'open': float(candle[5])
-            } for candle in candlesticks]
-            
-        except GateApiException as e:
-            logger.error(f"Gate.io API error in get_historical_data: {e}")
-            return None 
+            return result['ticks']
+        except Exception as e:
+            logger.error(f"Error getting historical data: {e}")
+            raise 

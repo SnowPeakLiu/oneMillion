@@ -15,7 +15,8 @@ dependencies = [
     "websockets",
     "requests",
     "pytest",
-    "pytest-asyncio"
+    "pytest-asyncio",
+    "aiohttp>=3.8.0"
 ]
 
 [tool.pytest.ini_options]

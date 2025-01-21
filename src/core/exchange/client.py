@@ -1,11 +1,17 @@
 """
-Main Gate.io exchange client.
+Main Deribit exchange client.
 
 Integrates market data, historical data, and account operations.
 """
 
-import gate_api
-from gate_api import ApiClient, SpotApi, Configuration
+import aiohttp
+import asyncio
+import json
+import time
+import hmac
+import hashlib
+import base64
+from typing import Dict, Any
 
 from config_local import EXCHANGE_CONFIG
 from utils.logger import get_logger
@@ -17,7 +23,7 @@ logger = get_logger(__name__)
 
 class ExchangeClient:
     """
-    Main Gate.io exchange client integrating all operations.
+    Main Deribit exchange client integrating all operations.
     
     Provides access to market data, historical data, and account operations
     through specialized client instances.
@@ -29,23 +35,68 @@ class ExchangeClient:
         fees = await client.account.get_trading_fees()
     """
     
+    TESTNET_URL = 'wss://test.deribit.com/ws/api/v2'
+    PRODUCTION_URL = 'wss://www.deribit.com/ws/api/v2'
+    
     def __init__(self):
-        """Initialize Gate.io API client with configuration"""
-        self.config = Configuration(
-            key=EXCHANGE_CONFIG['api_key'],
-            secret=EXCHANGE_CONFIG['api_secret'],
-            host=EXCHANGE_CONFIG['test_base_url'] if EXCHANGE_CONFIG['use_testnet'] 
-                else EXCHANGE_CONFIG['base_url']
-        )
+        """Initialize the exchange client with configuration"""
+        self.config = EXCHANGE_CONFIG
+        self.use_testnet = self.config.get('use_testnet', True)
+        self.ws_url = self.TESTNET_URL if self.use_testnet else self.PRODUCTION_URL
+        self.env = 'TESTNET' if self.use_testnet else 'PRODUCTION'
         
-        self.client = ApiClient(self.config)
-        self.spot_api = SpotApi(self.client)
-        self.trading_pair = EXCHANGE_CONFIG['trading_pair']
+        logger.info(f'Initializing Deribit client in {self.env} environment')
+        
+        self.client_id = EXCHANGE_CONFIG['client_id']
+        self.client_secret = EXCHANGE_CONFIG['client_secret']
+        self.instrument_name = EXCHANGE_CONFIG['instrument_name']
+        self.currency = EXCHANGE_CONFIG['currency']
         
         # Initialize specialized clients
-        self.market = MarketDataClient(self.spot_api, self.trading_pair)
-        self.historical = HistoricalDataClient(self.spot_api, self.trading_pair)
-        self.account = AccountClient(self.spot_api, self.trading_pair)
+        self.market = MarketDataClient(self)
+        self.historical = HistoricalDataClient(self)
+        self.account = AccountClient(self)
         
-        env = "TESTNET" if EXCHANGE_CONFIG['use_testnet'] else "PRODUCTION"
-        logger.info(f"Initializing Gate.io client in {env} environment") 
+    async def _get_auth_headers(self) -> Dict[str, Any]:
+        """Generate authentication headers for API requests"""
+        timestamp = int(time.time() * 1000)
+        nonce = str(timestamp)
+        
+        signature_string = f'{timestamp}\n{nonce}\n'
+        signature = hmac.new(
+            bytes(self.client_secret, 'utf-8'),
+            bytes(signature_string, 'utf-8'),
+            hashlib.sha256
+        ).hexdigest()
+        
+        return {
+            'client_id': self.client_id,
+            'timestamp': str(timestamp),
+            'nonce': nonce,
+            'signature': signature
+        }
+        
+    async def request(self, method: str, params: Dict[str, Any] = None, auth: bool = False) -> Dict[str, Any]:
+        """Make a request to the Deribit API"""
+        request_id = int(time.time() * 1000)
+        message = {
+            'jsonrpc': '2.0',
+            'id': request_id,
+            'method': method,
+            'params': params or {}
+        }
+        
+        if auth:
+            message['params'].update(await self._get_auth_headers())
+            
+        session = aiohttp.ClientSession()
+        try:
+            ws = await session.ws_connect(self.ws_url)
+            try:
+                await ws.send_json(message)
+                response = await ws.receive_json()
+                return response.get('result')
+            finally:
+                await ws.close()
+        finally:
+            await session.close() 

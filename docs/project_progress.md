@@ -14,14 +14,19 @@
   - Account balance checking
   - Order book data
   - Position information
+- Testing infrastructure:
+  - pytest configuration
+  - WebSocket mocking
+  - API integration tests
+  - Configuration tests
 
 #### In Progress 🚧
 - Core components structure:
+  - Position management ✅
+  - Order execution ✅
   - Risk management system
   - Base strategy framework
   - Monitoring system
-  - Position management
-  - Order execution
 
 #### Todo 📋
 - Data pipeline implementation
@@ -35,9 +40,9 @@
 - [x] Authentication system
 - [x] Market data streaming
 - [x] Order book handling
-- [ ] Order placement and management
-- [ ] Position tracking
-- [ ] Balance management
+- [x] Order placement and management
+- [x] Position tracking
+- [x] Balance management
 
 #### Risk Management
 - [ ] Position sizing algorithms

@@ -12,6 +12,7 @@ An automated cryptocurrency trading system focusing on BTC-PERPETUAL futures tra
 - 🔔 Real-time monitoring and alerts
 - 💼 Perpetual futures trading
 - 🔄 WebSocket-based real-time updates
+- 🧪 Comprehensive test suite
 
 ## Project Structure
 
@@ -19,6 +20,9 @@ An automated cryptocurrency trading system focusing on BTC-PERPETUAL futures tra
 oneMillion/
 ├── src/
 │   ├── core/           # Core trading components
+│   │   ├── exchange/   # Exchange client and API integration
+│   │   ├── orders/     # Order management
+│   │   └── position/   # Position tracking
 │   ├── strategies/     # Trading strategies
 │   ├── data/          # Data management
 │   └── utils/         # Utility functions
@@ -31,7 +35,7 @@ oneMillion/
 ### Prerequisites
 
 - Python 3.8+
-- Deribit WebSocket API account
+- Deribit API account (testnet for development)
 
 ### Installation
 
@@ -49,15 +53,36 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 3. Install dependencies
 ```bash
-# Install development dependencies
-pip install -e ".[test]"
-# Or just runtime dependencies
-pip install -e .
+pip install -e ".[test]"  # Install with test dependencies
 ```
 
-4. Configure API credentials
-- Copy `src/config.py` to `src/config_local.py`
-- Add your Deribit WebSocket API credentials to `config_local.py`
+### Configuration
+
+1. Set up Deribit API credentials:
+   - Create an account on [Deribit Testnet](https://test.deribit.com/)
+   - Go to Account > API
+   - Create new API key with appropriate permissions
+   - Copy the client ID and client secret
+
+2. Configure the bot:
+   - Update `src/core/config_local.py` with your API credentials:
+     ```python
+     EXCHANGE_CONFIG = {
+         'client_id': 'your_client_id',      # Your Deribit API client ID
+         'client_secret': 'your_client_secret', # Your Deribit API client secret
+         'instrument_name': 'BTC-PERPETUAL',
+         'currency': 'BTC',
+         'use_testnet': True  # Use True for testing
+     }
+     ```
+
+### Testing
+
+Run the test suite to verify your setup:
+```bash
+python -m pytest -v  # Run all tests
+python -m pytest tests/test_exchange_config.py  # Test exchange configuration
+```
 
 ## Development
 
@@ -85,4 +110,12 @@ See our [Project Progress](docs/project_progress.md) for:
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details 
+This project is licensed under the MIT License - see the LICENSE file for details
+
+## Security Notes
+
+- Never commit your API credentials
+- Always use testnet for development
+- Start with small position sizes
+- Monitor your positions regularly
+- Use appropriate risk management settings 

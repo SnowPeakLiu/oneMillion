@@ -1,45 +1,66 @@
 """
-Account operations for Gate.io exchange.
+Account operations client for Deribit exchange.
 
-Handles account-related operations like fees and balances.
+Handles account-related operations like balance and trading fees.
 """
 
-from typing import Dict, Optional
-from gate_api.exceptions import GateApiException
+from typing import Dict, Any
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
 
 class AccountClient:
     """
-    Handles account operations for Gate.io exchange.
+    Client for accessing account-related operations on Deribit.
     
-    Args:
-        spot_api: Gate.io spot API instance
-        trading_pair: Trading pair to use
-        
-    Example:
-        client = AccountClient(spot_api, "BTC_USDT")
-        fees = await client.get_trading_fees()
+    Provides methods for retrieving account balances, trading fees,
+    and other account information through WebSocket API.
     """
     
-    def __init__(self, spot_api, trading_pair: str):
-        self.spot_api = spot_api
-        self.trading_pair = trading_pair
+    def __init__(self, exchange_client):
+        """Initialize account client"""
+        self.exchange = exchange_client
+        self.currency = exchange_client.currency
         
-    async def get_trading_fees(self) -> Optional[Dict]:
-        """
-        Get trading fee rates for the configured pair.
-        
-        Returns:
-            Dictionary containing maker and taker fees or None if error occurs
-        """
+    async def get_balance(self) -> Dict[str, Any]:
+        """Get account balance information"""
         try:
-            fee_info = self.spot_api.get_fee(currency_pair=self.trading_pair)
+            result = await self.exchange.request(
+                'private/get_account_summary',
+                {
+                    'currency': self.currency,
+                    'extended': True
+                },
+                auth=True
+            )
+            
             return {
-                'maker_fee': float(fee_info.maker_fee),
-                'taker_fee': float(fee_info.taker_fee)
+                'total_balance': float(result['equity']),
+                'available_balance': float(result['available_funds']),
+                'margin_balance': float(result['margin_balance']),
+                'unrealized_pnl': float(result['total_pl']),
+                'currency': self.currency
             }
-        except GateApiException as e:
-            logger.error(f"Gate.io API error in get_trading_fees: {e}")
-            return None 
+        except Exception as e:
+            logger.error(f"Error getting account balance: {e}")
+            raise
+            
+    async def get_trading_fees(self) -> Dict[str, float]:
+        """Get trading fee rates"""
+        try:
+            result = await self.exchange.request(
+                'private/get_account_summary',
+                {
+                    'currency': self.currency,
+                    'extended': True
+                },
+                auth=True
+            )
+            
+            return {
+                'maker_fee': float(result['maker_fee']),
+                'taker_fee': float(result['taker_fee'])
+            }
+        except Exception as e:
+            logger.error(f"Error getting trading fees: {e}")
+            raise 
